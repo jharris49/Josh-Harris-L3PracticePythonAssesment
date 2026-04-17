@@ -1,7 +1,11 @@
 from tkinter import *
 from tkinter import messagebox
 
-
+class Person:
+    def __init__(self, name, age, phone_status):
+        self.name = name 
+        self.age = age
+        self.phone_status = phone_status
 
 class GetDataGUI:
     def __init__(self, parent):
@@ -124,7 +128,8 @@ class GetDataGUI:
 
         self.enter_data_button = Button(
             self.data_collection_frame,
-            text = "Enter Data"
+            text = "Enter Data",
+            command = self.save_person
         )
         self.enter_data_button.grid(
             row = 5, 
@@ -272,6 +277,15 @@ class GetDataGUI:
         """
         End of AI code. 
         """
+
+    def save_person(self):
+        if self.mobile_phone:
+            text = "has a mobile phone"
+        else:
+            text = "does not have a mobile phone"
+        print(f"{self.first_name.get()} {text}")
+        print(f"{self.age.get()}")
+
         
 
 
