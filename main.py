@@ -9,6 +9,8 @@ class Person:
 
 class GetDataGUI:
     def __init__(self, parent):
+        self.persons = []
+
         self.data_collection_frame = Frame(parent)
         self.display_data_frame = Frame(parent)
         self.current_frame = 1
@@ -279,14 +281,20 @@ class GetDataGUI:
         """
 
     def save_person(self):
+        self.persons.append(Person(self.first_name.get(), self.age.get(), self.mobile_phone.get()))
+        messagebox.showinfo("Data Saved!", "This data has been saved.")
+        self.first_name.set("")
+        self.age.set(0)
+        
+        """
         if self.mobile_phone:
             text = "has a mobile phone"
         else:
             text = "does not have a mobile phone"
         print(f"{self.first_name.get()} {text}")
         print(f"{self.age.get()}")
-
-        
+        print(f"{self.mobile_phone.get()}")
+        """
 
 
 if __name__ == "__main__":
