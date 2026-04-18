@@ -2,10 +2,11 @@ from tkinter import *
 from tkinter import messagebox
 
 class Person:
-    def __init__(self, name, age, phone_status):
+    def __init__(self, name, age, phone_status, phone_number = None):
         self.name = name 
         self.age = age
         self.phone_status = phone_status
+        self.phone_number = phone_number
 
 class GetDataGUI:
     def __init__(self, parent):
@@ -15,7 +16,18 @@ class GetDataGUI:
         self.data_collection_frame = Frame(parent)
         self.display_data_frame = Frame(parent)
         self.current_frame = 1
-        
+
+        self.phone_number_label = Label(
+            self.data_collection_frame,
+            text = "Enter your phone number:"
+        )
+
+        self.phone_number = StringVar()
+        self.phone_number_entry = Entry(
+            self.data_collection_frame,
+            textvariable = self.phone_number
+        )
+
         self.collecting_data_label = Label(
             self.data_collection_frame,
             text = "Collecting Person Data"
@@ -30,7 +42,7 @@ class GetDataGUI:
 
         self.name_label = Label(
             self.data_collection_frame,
-            text = "First name:"
+            text = "Name:"
         )
         self.name_label.grid(
             row = 1, 
@@ -76,14 +88,12 @@ class GetDataGUI:
             padx = 10
         )
 
-        self.first_name = StringVar()
-        self.first_name_entry = Entry(
+        self.name = StringVar()
+        self.name_entry = Entry(
             self.data_collection_frame,
-            textvariable = self.first_name,
-            highlightbackground = "ghostwhite",
-            highlightthickness = 0
+            textvariable = self.name
         )
-        self.first_name_entry.grid(
+        self.name_entry.grid(
             row = 1,
             column = 1, 
             sticky = W,
@@ -91,11 +101,11 @@ class GetDataGUI:
         )
 
         self.age = IntVar()
-        self.age_entry = Entry(
+        self.age_entry = Spinbox(
             self.data_collection_frame,
             textvariable = self.age,
-            highlightbackground = "ghostwhite",
-            highlightthickness = 0
+            from_ = 0,
+            to = 200,
         )
         self.age_entry.grid(
             row = 2, 
@@ -111,7 +121,8 @@ class GetDataGUI:
             self.data_collection_frame,
             variable = self.mobile_phone,
             value = False,
-            text = "No"
+            text = "No",
+            command = self.check_phone_radiobuttons
         )
         self.phone_radiobutton_false.grid(
             row = 3, 
@@ -124,7 +135,8 @@ class GetDataGUI:
             self.data_collection_frame,
             variable = self.mobile_phone,
             value = True,
-            text = "Yes"
+            text = "Yes",
+            command = self.check_phone_radiobuttons
         )
         self.phone_radiobutton_true.grid(
             row = 4,
@@ -160,7 +172,7 @@ class GetDataGUI:
 
         self.f2_name_label = Label(
             self.display_data_frame,
-            text = "First name:"
+            text = "Name:"
         )
         self.f2_name_label.grid(
             row = 1, 
@@ -192,6 +204,16 @@ class GetDataGUI:
             columnspan = 2, 
             padx = 20,
             pady = 5
+        )
+
+        self.f2_phone_number_label = Label(
+            self.display_data_frame,
+            text = "Phone Number:"
+        )
+
+        self.person_phone_number_label = Label(
+            self.display_data_frame,
+            text = "(number)"
         )
 
         self.previous_button = Button(
@@ -263,7 +285,7 @@ class GetDataGUI:
     def switch_frame(self):
         if len(self.persons) == 0:
             messagebox.showerror("No Data Saved", "You have not saved any data yet. Save data first before trying to view it.")
-            self.first_name_entry.focus_set()
+            self.name_entry.focus_set()
         else:
             if self.current_frame == 1:
                 self.data_collection_frame.grid_forget()
@@ -293,37 +315,162 @@ class GetDataGUI:
             """
 
     def save_person(self):
-        self.persons.append(Person(self.first_name.get(), self.age.get(), self.mobile_phone.get()))
-        messagebox.showinfo("Data Saved!", "This data has been saved.")
-        self.first_name.set("")
-        self.age.set(0)
-        self.first_name_entry.focus_set()
+        if self.check_entries():
+            self.persons.append(Person(self.name.get(), self.age.get(), self.mobile_phone.get(), self.phone_number.get().replace(" ", "")))
+            messagebox.showinfo("Data Saved!", "This data has been saved.")
+            self.name.set("")
+            self.age.set(0)
+            self.phone_number.set("")
+            self.name_entry.focus_set()
 
     def output_data(self, status):
         self.person_counter += status
         if len(self.persons) == self.person_counter or self.person_counter < 0 :
-            messagebox.showerror("Not more data", "You cannot see anymore data as there is only 1 data point to see. Try entering more data.")
+            messagebox.showerror("Not more data", "You cannot see anymore data as there is no more data to display. Try entering more data.")
             self.person_counter -= status
         else:
             temp_name = self.persons[self.person_counter].name
             temp_age = self.persons[self.person_counter].age
-            temp_mobile = self.persons[self.person_counter].phone_status
+            temp_mobile_status = self.persons[self.person_counter].phone_status
+            temp_phone_number = self.persons[self.person_counter].phone_number
+
             self.person_name_label.config(
                 text = temp_name
             )
             self.person_age_label.config(
                 text = temp_age
             )
-
+            
             self.person_phone_label.config(
-                text = f"{temp_name} {self.check_mobile(temp_mobile)}"
+                text = f"{temp_name} {self.check_mobile(temp_mobile_status)}"
             )
+
+            if self.check_mobile(temp_mobile_status) == "has a mobile phone":
+                self.person_phone_number_label.config(
+                    text = temp_phone_number
+                )
+
+                self.f2_phone_number_label.grid(
+                    row = 4,
+                    column = 0,
+                    padx = 20,
+                    pady = 5,
+                    sticky = W
+                )
+                
+                self.person_phone_number_label.grid(
+                    row = 4,
+                    column = 1,
+                    padx = 20,
+                    pady = 5,
+                    sticky = W
+                )
+
+                self.next_button.grid(
+                    row = 5, 
+                    column = 1, 
+                    sticky = E,
+                    padx = 20,
+                    pady = 10
+                )
+
+                self.previous_button.grid(
+                    row = 5, 
+                    column = 0, 
+                    sticky = W,
+                    padx = 20,
+                    pady = 10
+                )
+            else:
+                self.previous_button.grid(
+                    row = 4, 
+                    column = 0, 
+                    sticky = W,
+                    padx = 20,
+                    pady = 10
+                )
+                self.next_button.grid(
+                    row = 4, 
+                    column = 1, 
+                    sticky = E,
+                    padx = 20,
+                    pady = 10
+                )
+
+                self.person_phone_number_label.grid_forget()
+
+                self.f2_phone_number_label.grid_forget()
+
+
+
 
     def check_mobile(self, mobile):
         if mobile:
             return "has a mobile phone"
         else:
             return "does not have a mobile phone"
+        
+    def check_entries(self):
+        try:
+           self.age.get()
+        except TclError:
+            messagebox.showwarning("Invalid Input", "You entered an invalid character as your age or phone number, try entering a valid number")
+            return False 
+        
+        if self.age.get() == 0 or self.name.get().strip() == "":
+            messagebox.showwarning("Empty Datapoints", "An entry box is missing some data. Please fill out all entries to continue.")
+            if self.name_entry.get() == "":
+                self.name_entry.focus_set()
+            else:
+                self.age_entry.focus_set()
+            return False
+        
+        if self.mobile_phone.get():
+            phone = self.phone_number.get()
+            phone = phone.replace(" ", "")
+            if not phone.isdigit():
+                messagebox.showwarning("Invalid Phone Number", "You have entered an invalid phone number. Please ensure that your number does not contain any letters and or special characters.")
+                return False
+            
+        if self.age.get() < 0:
+            messagebox.showwarning("Invalid Age", "Please enter a valid age to save.")
+            return False 
+        return True
+        
+            
+
+
+    def check_phone_radiobuttons(self):
+        if self.mobile_phone.get():
+            self.phone_number_label.grid(
+                row = 5,
+                column = 0,
+                padx = 20,
+                pady = 5,
+                sticky = W
+            )
+            self.phone_number_entry.grid(
+                row = 5,
+                column = 1,
+                padx = 10,
+                pady = 5,
+                sticky = W
+            )
+            self.enter_data_button.grid(
+                row = 6, 
+                column = 0,
+                columnspan = 2,
+                pady = 20,
+            )
+        elif not self.mobile_phone.get():
+            self.phone_number_label.grid_forget()
+            self.phone_number_entry.grid_forget()
+            self.enter_data_button.grid(
+                row = 5, 
+                column = 0,
+                columnspan = 2,
+                pady = 20
+            )
 
 if __name__ == "__main__":
     root = Tk()
