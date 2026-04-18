@@ -10,6 +10,7 @@ class Person:
 class GetDataGUI:
     def __init__(self, parent):
         self.persons = []
+        self.person_counter = 0
 
         self.data_collection_frame = Frame(parent)
         self.display_data_frame = Frame(parent)
@@ -66,7 +67,7 @@ class GetDataGUI:
         self.show_button = Button(
             self.data_collection_frame,
             text = "Show All",
-            command = self.switch_frame
+            command = self.switch_frame,
         )
         self.show_button.grid(
             row = 0, 
@@ -78,7 +79,9 @@ class GetDataGUI:
         self.first_name = StringVar()
         self.first_name_entry = Entry(
             self.data_collection_frame,
-            textvariable = self.first_name
+            textvariable = self.first_name,
+            highlightbackground = "ghostwhite",
+            highlightthickness = 0
         )
         self.first_name_entry.grid(
             row = 1,
@@ -90,7 +93,9 @@ class GetDataGUI:
         self.age = IntVar()
         self.age_entry = Entry(
             self.data_collection_frame,
-            textvariable = self.age
+            textvariable = self.age,
+            highlightbackground = "ghostwhite",
+            highlightthickness = 0
         )
         self.age_entry.grid(
             row = 2, 
@@ -191,7 +196,8 @@ class GetDataGUI:
 
         self.previous_button = Button(
             self.display_data_frame,
-            text = "Previous"
+            text = "Previous",
+            command = lambda:self.output_data(-1)
         )
         self.previous_button.grid(
             row = 4, 
@@ -239,7 +245,8 @@ class GetDataGUI:
 
         self.next_button = Button(
             self.display_data_frame,
-            text = "Next"
+            text = "Next",
+            command = lambda:self.output_data(1)
         )
         self.next_button.grid(
             row = 4, 
@@ -254,48 +261,69 @@ class GetDataGUI:
 
 
     def switch_frame(self):
-        if self.current_frame == 1:
-            self.data_collection_frame.grid_forget()
-            self.display_data_frame.grid()
-            self.current_frame = 2
-            target_frame = self.display_data_frame
+        if len(self.persons) == 0:
+            messagebox.showerror("No Data Saved", "You have not saved any data yet. Save data first before trying to view it.")
+            self.first_name_entry.focus_set()
         else:
-            self.display_data_frame.grid_forget()
-            self.data_collection_frame.grid()
-            self.current_frame = 1
-            target_frame = self.data_collection_frame
+            if self.current_frame == 1:
+                self.data_collection_frame.grid_forget()
+                self.output_data(0)
+                self.display_data_frame.grid()
+                self.current_frame = 2
+                target_frame = self.display_data_frame
+            else:
+                self.display_data_frame.grid_forget()
+                self.data_collection_frame.grid()
+                self.current_frame = 1
+                target_frame = self.data_collection_frame
 
-        """
-        AI code below in order to fix issues with macOS preventing frames from being redrawn
-        correctly. 
-        """
-        target_frame.tkraise()             # Pull to front
-        target_frame.update_idletasks()    # Redraw the widgets
-        target_frame.focus_force()         # Grab keyboard focus
-        
-        # This is the "Magic" line for macOS: 
-        # It tells the window to refresh its visual state immediately.
-        target_frame.master.update()
-        """
-        End of AI code. 
-        """
+            """
+            AI code below in order to fix issues with macOS preventing frames from being redrawn
+            correctly. 
+            """
+            target_frame.tkraise()             # Pull to front
+            target_frame.update_idletasks()    # Redraw the widgets
+            target_frame.focus_force()         # Grab keyboard focus
+            
+            # This is the "Magic" line for macOS: 
+            # It tells the window to refresh its visual state immediately.
+            target_frame.master.update()
+            """
+            End of AI code. 
+            """
 
     def save_person(self):
         self.persons.append(Person(self.first_name.get(), self.age.get(), self.mobile_phone.get()))
         messagebox.showinfo("Data Saved!", "This data has been saved.")
         self.first_name.set("")
         self.age.set(0)
-        
-        """
-        if self.mobile_phone:
-            text = "has a mobile phone"
-        else:
-            text = "does not have a mobile phone"
-        print(f"{self.first_name.get()} {text}")
-        print(f"{self.age.get()}")
-        print(f"{self.mobile_phone.get()}")
-        """
+        self.first_name_entry.focus_set()
 
+    def output_data(self, status):
+        self.person_counter += status
+        if len(self.persons) == self.person_counter or self.person_counter < 0 :
+            messagebox.showerror("Not more data", "You cannot see anymore data as there is only 1 data point to see. Try entering more data.")
+            self.person_counter -= status
+        else:
+            temp_name = self.persons[self.person_counter].name
+            temp_age = self.persons[self.person_counter].age
+            temp_mobile = self.persons[self.person_counter].phone_status
+            self.person_name_label.config(
+                text = temp_name
+            )
+            self.person_age_label.config(
+                text = temp_age
+            )
+
+            self.person_phone_label.config(
+                text = f"{temp_name} {self.check_mobile(temp_mobile)}"
+            )
+
+    def check_mobile(self, mobile):
+        if mobile:
+            return "has a mobile phone"
+        else:
+            return "does not have a mobile phone"
 
 if __name__ == "__main__":
     root = Tk()
